@@ -17,7 +17,7 @@ BASE_URL = "https://pokeapi.co/api/v2/"
 # Step 1: Get all Pokémon URLs
 def get_all_pokemon_urls():
     try:
-        url = f"{BASE_URL}pokemon?limit=100000"
+        url = f"{BASE_URL}pokemon?limit=10"
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()

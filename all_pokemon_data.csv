@@ -1,0 +1,11 @@
+name,base_experience,height,weight,types,abilities,sprite
+bulbasaur,64,7,69,"grass,poison","overgrow,chlorophyll",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png
+ivysaur,142,10,130,"grass,poison","overgrow,chlorophyll",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/2.png
+venusaur,236,20,1000,"grass,poison","overgrow,chlorophyll",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/3.png
+charmander,62,6,85,fire,"blaze,solar-power",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png
+charmeleon,142,11,190,fire,"blaze,solar-power",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/5.png
+charizard,240,17,905,"fire,flying","blaze,solar-power",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png
+squirtle,63,5,90,water,"torrent,rain-dish",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png
+wartortle,142,10,225,water,"torrent,rain-dish",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/8.png
+blastoise,239,16,855,water,"torrent,rain-dish",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/9.png
+caterpie,39,3,29,bug,"shield-dust,run-away",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10.png
