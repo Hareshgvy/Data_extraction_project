@@ -15,14 +15,14 @@ PG_CONFIG = {
 MYSQL_CONFIG = {
     'host': 'localhost',
     'port': 3306,
-    'database': 'PythonProject',
+    'database': 'pythonmigration',
     'user': 'root',
     'password': 'Sabagvy07@'
 }
 
 
 def fetch_data_from_postgres():
-    """Fetch data from PostgreSQL."""
+    """Fetch data from PostgreSQL without using read_sql."""
     query = """
     SELECT 
         p.payment_id,
@@ -39,7 +39,12 @@ def fetch_data_from_postgres():
     """
     try:
         conn = psycopg2.connect(**PG_CONFIG)
-        df = pd.read_sql(query, conn)
+        cursor = conn.cursor()
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        columns = [desc[0] for desc in cursor.description]
+        df = pd.DataFrame(rows, columns=columns)
+        cursor.close()
         conn.close()
         print("✅ Fetched data from PostgreSQL")
         return df
@@ -49,12 +54,22 @@ def fetch_data_from_postgres():
 
 
 def transform_data(df):
-    """Transform data: combine names, format date."""
+    """Transform names and format date for MySQL."""
     try:
-        df['full_name'] = df['first_name'].str.strip() + ' ' + df['last_name'].str.strip()
-        df['payment_date'] = pd.to_datetime(df['payment_date']).dt.strftime('%m/%d/%Y')
+        # Format full name: capitalize first letter, rest lowercase
+        df['full_name'] = (
+            df['first_name'].str.strip().str.title() + ' ' +
+            df['last_name'].str.strip().str.title()
+        )
+
+        # Format payment_date to YY-MM-DD (MySQL DATE format)
+        df['payment_date'] = pd.to_datetime(df['payment_date'], errors='coerce')
+        df['payment_date'] = df['payment_date'].dt.strftime('%d-%m-%y')
+
+        # Select final columns
         df = df[['payment_id', 'amount', 'payment_date', 'customer_id', 'full_name', 'email']]
-        print("✅ Transformed data")
+        print("Transformed data")
+        print(df.head())  # Debug preview
         return df
     except Exception as e:
         print("❌ Error transforming data:", e)
@@ -62,33 +77,34 @@ def transform_data(df):
 
 
 def load_data_to_mysql(df):
-    """Create MySQL table and load transformed data into it."""
+    """Drop + recreate MySQL table and load transformed data."""
     try:
         conn = mysql.connector.connect(**MYSQL_CONFIG)
         cursor = conn.cursor()
 
-        # Create table
+        # Drop and recreate the table
+        cursor.execute("DROP TABLE IF EXISTS payment_customer")
         create_table_sql = """
-        CREATE TABLE IF NOT EXISTS payment_customer (
+        CREATE TABLE payment_customer (
             payment_id INT,
             amount DECIMAL(10,2),
-            payment_date DATETIME,
+            payment_date DATE,
             customer_id INT,
             full_name VARCHAR(200),
             email VARCHAR(255)
-        );
+        )
         """
         cursor.execute(create_table_sql)
 
-        # Insert data
+        # Prepare and insert data
         insert_sql = """
         INSERT INTO payment_customer 
         (payment_id, amount, payment_date, customer_id, full_name, email)
         VALUES (%s, %s, %s, %s, %s, %s)
         """
-        data = [tuple(row) for row in df.to_numpy()]
+        data = [tuple(row) for row in df.itertuples(index=False, name=None)]
         cursor.executemany(insert_sql, data)
-        conn.commit()
+        conn.commit()  # ✅ Commit is essential
 
         print(f"✅ Inserted {cursor.rowcount} rows into MySQL")
 
@@ -106,11 +122,12 @@ def main():
         return
 
     transformed_df = transform_data(df)
-    if transformed_df is None:
-        print("❌ Transformation failed.")
+    if transformed_df is None or transformed_df.empty:
+        print("❌ Transformation failed or resulted in empty data.")
         return
 
     load_data_to_mysql(transformed_df)
+
 
 if __name__ == "__main__":
     main()
